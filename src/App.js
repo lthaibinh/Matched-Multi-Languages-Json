@@ -2,6 +2,7 @@
 import React, { Component } from "react";
 import writeXlsxFile from "write-excel-file";
 import readXlsxFile from 'read-excel-file'
+import { reduce } from "lodash";
 
 const unflatten = require('unflatten')
 var _ = require('lodash');
@@ -106,21 +107,28 @@ class App extends Component {
     let enArray = Object.entries(enObject);
     let twArray = Object.entries(twObject);
     let viLength = viArray.length;
+
+    this.setState({
+      errMsg: '3 file đã khớp !',
+      colorMsg: 'green'
+    })
     for (var i = 0; i < viLength; i++) {
       if (viArray[i][0] !== enArray[i][0]) {
         this.setState({
-          errMsg: 'kiểm tra trong file en.json: ' + enArray[i][0]
+          errMsg: 'kiểm tra trong file en.json: ' + enArray[i][0],
+          colorMsg: 'red'
         })
         break;
       }
       if (viArray[i][0] !== twArray[i][0]) {
         this.setState({
-          errMsg: 'kiểm tra trong file tw.json: ' + twArray[i][0]
+          errMsg: 'kiểm tra trong file tw.json: ' + twArray[i][0],
+          colorMsg: 'red'
         })
         break;
       }
     }
-    console.log('binhtest 3 file matched');
+    
   }
   exportFileToTranslate = (e) => {
     let name = e.target.name;
@@ -218,8 +226,8 @@ class App extends Component {
   render() {
     let { twObject, enObject } = this.state
     return (
-      <div className="App">
-        <div className="row">
+      <div className="App ms-4">
+        <div className="row mt-4">
           <div className="mb-3 col-4">
             <label htmlFor="viLanguageFile" className="form-label">
               File Tiếng Việt
@@ -233,7 +241,7 @@ class App extends Component {
             />
           </div>
         </div>
-        <div className="row">
+        <div className="row mt-4">
           <div className="mb-3 col-4">
             <label htmlFor="enLanguageFile" className="form-label">
               File Tiếng anh
@@ -251,7 +259,7 @@ class App extends Component {
             <button name="tw" onClick={() => this.formatFileBasedOnVi(enObject, 'en.json')} className="btn btn-primary"> Sort theo file Vi </button>
           </div>
         </div>
-        <div className="row">
+        <div className="row mt-4">
           <div className="mb-3 col-4">
             <label htmlFor="twLanguageFile" className="form-label">
               File Tiếng Trung
@@ -264,13 +272,13 @@ class App extends Component {
               id="twLanguageFile"
             />
           </div>
-          <div className="col-8">
-            <button name="tw" onClick={this.exportFileToTranslate} className="btn btn-primary"> Kết xuất file cần translate </button>
-            <button name="tw" onClick={() => this.formatFileBasedOnVi(twObject, 'tw.json')} className="btn btn-primary"> Sort theo file Vi </button>
+          <div className="col-8 row">
+            <div className="col-12"><button name="tw" onClick={this.exportFileToTranslate} className="btn btn-primary"> Kết xuất file cần translate </button></div>
+            <div className="col-12"><button name="tw" onClick={() => this.formatFileBasedOnVi(twObject, 'tw.json')} className="btn btn-primary"> Sort theo file Vi </button></div>
           </div>
 
         </div>
-        <div className="row">
+        <div className="row mt-4">
           <div className="mb-3 col-4">
             <label htmlFor="twLanguageFile" className="form-label">
               Chép ngược file tiếng trung đã dịch vào file json
@@ -297,21 +305,14 @@ class App extends Component {
             </div>
             
           </div>
-          <div className="col-8">
-            <button name="tw" onClick={this.exportFileToTranslate} className="btn btn-primary"> Kết xuất file cần translate </button>
-            <button name="tw" onClick={() => this.formatFileBasedOnVi(twObject, 'tw.json')} className="btn btn-primary"> Sort theo file Vi </button>
-          </div>
-
         </div>
 
 
         <button type onClick={this.checkInvalid} className="btn btn-primary">
-          is matched
+          check 3 file json khớp key ?
         </button>
-        <button type onClick={this.checkInvalid} className="btn btn-primary">
-          Submit
-        </button>
-        {this.state.errMsg}
+        
+        <p style={{color: `${this.state.colorMsg}`}}>{this.state.errMsg}</p>
       </div>
 
     );
