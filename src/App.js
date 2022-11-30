@@ -29,35 +29,55 @@ class App extends Component {
     viReader.readAsText(jsonFile);
   };
   handleFileExcelSelected = (e) => {
+    if (!this.isContinue()) {
+      return;
+    }
+
     const files = Array.from(e.target.files);
     let excelFile = files[0];
-    readXlsxFile(excelFile).then( rows => {
+    readXlsxFile(excelFile).then(rows => {
       let fileState = e.target.name
       this.setState({
-        [fileState]:rows
+        [fileState]: rows
       })
-      
-      const translatedObject = Object.fromEntries(rows)
-      this.handle_map_translatedObject_to_objectOrigin(translatedObject);
 
     })
   };
+
+  excute_write_excel_to_jsonFile = () => {
+
+    let { tw_translated_object } = this.state
+
+
+    if (!tw_translated_object) {
+      this.setState({
+        errMsg: 'Hãy chọn file excel + file json gốc',
+        colorMsg: 'red'
+      })
+      return;
+    }
+    const translatedObject = Object.fromEntries(tw_translated_object)
+    this.handle_map_translatedObject_to_objectOrigin(translatedObject);
+
+
+  }
+
   handle_map_translatedObject_to_objectOrigin = (translatedObject) => {
     // Object.keys(person)
-    let {twOriginObject} = this.state
+    let { twOriginObject } = this.state
     let twOriginArray = twOriginObject && Object.entries(twOriginObject)
-    let translatedArray =  Object.entries(translatedObject)
+    let translatedArray = Object.entries(translatedObject)
 
-    let resultObject = {...twOriginObject}
+    let resultObject = { ...twOriginObject }
     if (translatedArray && translatedArray.length > 0) {
-      translatedArray.forEach( (element,index) => {
+      translatedArray.forEach((element, index) => {
         // console.log('binhtest ',element,index);
-        console.log('binhtest final', index,  resultObject[`${element[0]}`]);
+        console.log('binhtest final', index, resultObject[`${element[0]}`]);
         resultObject[`${element[0]}`] = element[1]
-        console.log('binhtest final', index,  resultObject[`${element[0]}`]);
+        console.log('binhtest final', index, resultObject[`${element[0]}`]);
       })
     }
-    console.log('binhtest resultObject aray ', Object.entries(resultObject) );
+    console.log('binhtest resultObject aray ', Object.entries(resultObject));
     this.downloadFileJsonFromArray('tw.json', Object.entries(resultObject));
 
   }
@@ -100,9 +120,25 @@ class App extends Component {
   //   }
   //   return result;
   // };
-
-  checkInvalid = () => {
+  isContinue = () => {
     let { viObject, enObject, twObject } = this.state
+    if (!viObject || !enObject || !twObject) {
+      this.setState({
+        errMsg: 'Hãy chọn đủ 3 file: vi.json, en.json, tw.json để thực hiện chức năng này !',
+        colorMsg: 'red'
+      })
+      return false
+    }
+    return true
+  }
+  checkInvalid = () => {
+
+    let { viObject, enObject, twObject } = this.state
+
+    if (!this.isContinue()) {
+      return;
+    }
+
     let viArray = Object.entries(viObject);
     let enArray = Object.entries(enObject);
     let twArray = Object.entries(twObject);
@@ -128,9 +164,13 @@ class App extends Component {
         break;
       }
     }
-    
+
   }
   exportFileToTranslate = (e) => {
+    if (!this.isContinue()) {
+      return;
+    }
+
     let name = e.target.name;
     if (name === 'tw') {
       let { twObject, viObject } = this.state
@@ -159,6 +199,9 @@ class App extends Component {
     }
   }
   formatFileBasedOnVi = (dataObject, nameFile) => {
+    if (!this.isContinue()) {
+      return;
+    }
     let { viObject } = this.state
     let viArray = Object.entries(viObject);
     let dataArray = Object.entries(dataObject);
@@ -227,94 +270,107 @@ class App extends Component {
     let { twObject, enObject } = this.state
     return (
       <div className="App ms-4">
-        <div className="row mt-4">
-          <div className="mb-3 col-4">
-            <label htmlFor="viLanguageFile" className="form-label">
-              File Tiếng Việt
-            </label>
-            <input
-              name="viObject"
-              onChange={this.handleFileSelected}
-              className="form-control"
-              type="file"
-              id="viLanguageFile"
-            />
-          </div>
-        </div>
-        <div className="row mt-4">
-          <div className="mb-3 col-4">
-            <label htmlFor="enLanguageFile" className="form-label">
-              File Tiếng anh
-            </label>
-            <input
-              name="enObject"
-              onChange={this.handleFileSelected}
-              className="form-control"
-              type="file"
-              id="enLanguageFile"
-            />
-          </div>
+        <div className="row">
           <div className="col-8">
-            {/* <button name="tw" onClick={this.exportFileToTranslate} className="btn btn-primary"> Kết xuất file cần translate </button> */}
-            <button name="tw" onClick={() => this.formatFileBasedOnVi(enObject, 'en.json')} className="btn btn-primary"> Sort theo file Vi </button>
-          </div>
-        </div>
-        <div className="row mt-4">
-          <div className="mb-3 col-4">
-            <label htmlFor="twLanguageFile" className="form-label">
-              File Tiếng Trung
-            </label>
-            <input
-              name="twObject"
-              onChange={this.handleFileSelected}
-              className="form-control"
-              type="file"
-              id="twLanguageFile"
-            />
-          </div>
-          <div className="col-8 row">
-            <div className="col-12"><button name="tw" onClick={this.exportFileToTranslate} className="btn btn-primary"> Kết xuất file cần translate </button></div>
-            <div className="col-12"><button name="tw" onClick={() => this.formatFileBasedOnVi(twObject, 'tw.json')} className="btn btn-primary"> Sort theo file Vi </button></div>
-          </div>
-
-        </div>
-        <div className="row mt-4">
-          <div className="mb-3 col-4">
-            <label htmlFor="twLanguageFile" className="form-label">
-              Chép ngược file tiếng trung đã dịch vào file json
-            </label>
-            <div>
-              <label>file excel đã dịch</label>
-              <input
-                name="tw_translated_object"
-                onChange={this.handleFileExcelSelected}
-                className="form-control"
-                type="file"
-                id="twLanguageFile"
-            />
+            <div className="row mt-4">
+              <div className="mb-3 col-4">
+                <label htmlFor="viLanguageFile" className="form-label">
+                  File Tiếng Việt
+                </label>
+                <input
+                  name="viObject"
+                  onChange={this.handleFileSelected}
+                  className="form-control"
+                  type="file"
+                  id="viLanguageFile"
+                />
+              </div>
             </div>
-            <div>
-              <label>file json tw.json gốc </label>
-              <input
-                name="twOriginObject"
-                onChange={this.handleFileSelected}
-                className="form-control"
-                type="file"
-                id="twOriginLanguageFile"
-            />
+            <div className="row mt-4">
+              <div className="mb-3 col-4">
+                <label htmlFor="enLanguageFile" className="form-label">
+                  File Tiếng anh
+                </label>
+                <input
+                  name="enObject"
+                  onChange={this.handleFileSelected}
+                  className="form-control"
+                  type="file"
+                  id="enLanguageFile"
+                />
+              </div>
+              <div className="col-8">
+                {/* <button name="tw" onClick={this.exportFileToTranslate} className="btn btn-primary"> Kết xuất file cần translate </button> */}
+                <button name="tw" onClick={() => this.formatFileBasedOnVi(enObject, 'en.json')} className="btn btn-primary"> Sort theo file Vi </button>
+              </div>
             </div>
-            
+            <div className="row mt-4">
+              <div className="mb-3 col-4">
+                <label htmlFor="twLanguageFile" className="form-label">
+                  File Tiếng Trung
+                </label>
+                <input
+                  name="twObject"
+                  onChange={this.handleFileSelected}
+                  className="form-control"
+                  type="file"
+                  id="twLanguageFile"
+                />
+              </div>
+              <div className="col-8 row">
+                <div className="col-12"><button name="tw" onClick={this.exportFileToTranslate} className="btn btn-primary"> Kết xuất file cần translate </button></div>
+                <div className="col-12"><button name="tw" onClick={() => this.formatFileBasedOnVi(twObject, 'tw.json')} className="btn btn-primary"> Sort theo file Vi </button></div>
+              </div>
+
+            </div>
+            <div className="row mt-4">
+              <div className="mb-3 col-4">
+                <label htmlFor="twLanguageFile" className="form-label fw-bold">
+                  Chép ngược file tiếng trung đã dịch vào file json
+                </label>
+
+
+                <div>
+                  <label>file json tw.json gốc </label>
+                  <input
+                    name="twOriginObject"
+                    onChange={this.handleFileSelected}
+                    className="form-control"
+                    type="file"
+                    id="twOriginLanguageFile"
+                  />
+                </div>
+                <div>
+                  <label>file excel đã dịch</label>
+                  <input
+                    name="tw_translated_object"
+                    onChange={this.handleFileExcelSelected}
+                    className="form-control"
+                    type="file"
+                    id="twLanguageFile"
+                  />
+                </div>
+                <button name="tw" onClick={this.excute_write_excel_to_jsonFile} className="btn btn-primary mt-1"> Thực hiện </button>
+
+              </div>
+
+            </div>
+
+            <div>
+              <div htmlFor="twLanguageFile" className="form-label fw-bold mt-4">
+                Kiểm tra 3 file json có khớp key hay không ?
+              </div>
+              <button type onClick={this.checkInvalid} className="btn btn-primary">
+                Check khớp key
+              </button>
+            </div>
+          </div>
+          <div className="col-4 d-flex align-items-center">
+            <p style={{ color: `${this.state.colorMsg}`, fontWeight: '600', fontSize:'20px' }}>{this.state.errMsg}</p>
           </div>
         </div>
-
-
-        <button type onClick={this.checkInvalid} className="btn btn-primary">
-          check 3 file json khớp key ?
-        </button>
-        
-        <p style={{color: `${this.state.colorMsg}`}}>{this.state.errMsg}</p>
       </div>
-
+      // <p style={{ color: `${this.state.colorMsg}`, fontWeight: '600' }}>{this.state.errMsg}</p>
     );
   }
 }
